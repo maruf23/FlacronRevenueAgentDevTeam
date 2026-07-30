@@ -1,0 +1,51 @@
+# ডিপেন্ডেন্সি ফোল্ডার (কখনো গিটে রাখা উচিত নয়)
+node_modules/
+.pnp
+.pnp.js
+
+# প্রোডাকশন বিল্ড ফোল্ডার (NestJS)
+dist/
+build/
+
+# Next.js বিল্ড ফোল্ডার
+.next/
+out/
+.cache/
+
+# এনভায়রনমেন্ট ভেরিয়েবল (গিটে এগুলো কখনোই আপলোড করবেন না)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ডাটাবেস এবং Prisma (প্রিজমা ক্লায়েন্ট সাধারণত নোড_মডিউলের ভেতর থাকে)
+prisma/client/
+
+# ডকার ফাইল (ডকার বিল্ড করার সময় এগুলো কাজে আসবে, আমরা আলাদা .dockerignore দেব)
+.dockerignore
+
+# লগ ফাইল
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ওএস ফাইল (ম্যাক বা উইন্ডোজের অটোমেটিক ফাইল)
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# কোড এডিটর কনফিগারেশন
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# টেস্ট কভারেজ রিপোর্ট
+coverage/
+
+# ডকার ভলিউম ডেটা (ডকার কম্পোজ চালালে এগুলো তৈরি হতে পারে, গিটে রাখা যাবে না)
+docker-data/
+postgres-data/
+redis-data/
