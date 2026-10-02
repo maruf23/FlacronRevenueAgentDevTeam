@@ -1,0 +1,27 @@
+{
+  "name": "flacron-lead-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Flacron Lead Agent — multi-tenant AI SaaS monorepo",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm run start:dev -w @flacron/backend",
+    "dev:frontend": "npm run dev -w @flacron/frontend",
+    "build:backend": "npm run build -w @flacron/backend",
+    "build:frontend": "npm run build -w @flacron/frontend",
+    "build": "npm run build:backend && npm run build:frontend",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "^9.0.0",
+    "react-big-calendar": "^1.20.0",
+    "recharts": "^3.10.1"
+  }
+}

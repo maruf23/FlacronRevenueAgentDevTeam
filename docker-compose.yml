@@ -1,0 +1,75 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: flacron-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-flacron}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-flacron_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-flacron_revenue_agent}
+    ports:
+      # Host 5433 avoids conflict with a local Windows PostgreSQL on 5432
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-flacron} -d ${POSTGRES_DB:-flacron_revenue_agent}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: flacron-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      # Host 6380 avoids conflict with native Windows Redis (often 3.x on 6379)
+      - "${REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: flacron-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_PORT: ${APP_PORT:-3001}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-flacron}:${POSTGRES_PASSWORD:-flacron_dev_password}@postgres:5432/${POSTGRES_DB:-flacron_revenue_agent}?schema=public
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      JWT_SECRET: ${JWT_SECRET:-change_me_to_a_long_random_secret}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AI_DEFAULT_PROVIDER: ${AI_DEFAULT_PROVIDER:-openai}
+      HUNTER_API_KEY: ${HUNTER_API_KEY:-}
+      BULLMQ_PREFIX: ${BULLMQ_PREFIX:-flacron}
+      TENANT_HEADER: ${TENANT_HEADER:-x-tenant-id}
+    ports:
+      - "${APP_PORT:-3001}:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/backend/src:/app/src
+      - ./apps/backend/prisma:/app/prisma
+
+volumes:
+  postgres_data:
+  redis_data:
