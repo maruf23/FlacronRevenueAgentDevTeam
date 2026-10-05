@@ -15,6 +15,7 @@ import {
   Bell,
   CreditCard,
   UsersRound,
+  UserCog,
   Bot,
   Settings,
   ShieldCheck,
@@ -26,6 +27,8 @@ export type NavItem = {
   href: string;
   icon: LucideIcon;
   description?: string;
+  /** When set, only these roles see the item. */
+  roles?: string[];
 };
 
 export type NavSection = {
@@ -74,6 +77,12 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { title: 'Notifications', href: '/notifications', icon: Bell },
       { title: 'Team', href: '/team', icon: UsersRound },
+      {
+        title: 'Users',
+        href: '/users',
+        icon: UserCog,
+        roles: ['OWNER', 'ADMIN'],
+      },
       { title: 'Billing', href: '/billing', icon: CreditCard },
       { title: 'Settings', href: '/settings', icon: Settings },
     ],

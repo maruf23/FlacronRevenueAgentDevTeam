@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Role } from '@prisma/client';
+import { AccountStatus, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
@@ -99,6 +99,7 @@ export class AuthService {
         email: true,
         passwordHash: true,
         role: true,
+        accountStatus: true,
         workspaceId: true,
         firstName: true,
         lastName: true,
@@ -107,6 +108,12 @@ export class AuthService {
 
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (user.accountStatus === AccountStatus.SUSPENDED) {
+      throw new UnauthorizedException(
+        'This account is suspended. Contact an admin to restore access.',
+      );
     }
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);

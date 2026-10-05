@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NAV_SECTIONS } from '@/lib/navigation';
+import { useAuthStore } from '@/store/authStore';
 import { useSidebarStore } from '@/store/sidebarStore';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ type SidebarProps = {
 
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
+  const role = useAuthStore((s) => s.user?.role);
   const collapsed = useSidebarStore((s) => s.collapsed);
   const openSections = useSidebarStore((s) => s.openSections);
   const toggleCollapsed = useSidebarStore((s) => s.toggleCollapsed);
@@ -58,6 +60,10 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
       <nav className="flex flex-1 flex-col gap-2 overflow-y-auto p-2">
         {NAV_SECTIONS.map((section) => {
+          const items = section.items.filter(
+            (item) => !item.roles || (role ? item.roles.includes(role) : false),
+          );
+          if (items.length === 0) return null;
           const sectionOpen = compact || (openSections[section.id] ?? true);
           return (
             <div key={section.id}>
@@ -78,7 +84,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               ) : null}
               {sectionOpen ? (
                 <div className="flex flex-col gap-0.5">
-                  {section.items.map((item) => {
+                  {items.map((item) => {
                     const isActive =
                       item.href === '/'
                         ? pathname === '/'

@@ -14,6 +14,16 @@ enum Role {
   SALES_REP
 }
 
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum PlanStatus {
+  PURCHASED
+  NOT_PURCHASED
+}
+
 enum ImportJobStatus {
   PENDING
   PROCESSING
@@ -188,6 +198,9 @@ model User {
   firstName     String?        @map("first_name")
   lastName      String?        @map("last_name")
   role          Role           @default(SALES_REP)
+  accountStatus AccountStatus  @default(ACTIVE) @map("account_status")
+  planStatus    PlanStatus     @default(NOT_PURCHASED) @map("plan_status")
+  planName      String?        @map("plan_name")
   workspaceId   String         @map("workspace_id") @db.Uuid
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
@@ -198,6 +211,8 @@ model User {
   assignedTasks Task[]         @relation("TaskAssignee")
 
   @@index([workspaceId])
+  @@index([accountStatus])
+  @@index([planStatus])
   @@map("users")
 }
 
