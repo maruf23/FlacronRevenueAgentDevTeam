@@ -7,11 +7,13 @@ import {
 } from 'class-validator';
 
 export class RegisterDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'Enter a valid email address.' })
   email!: string;
 
   @IsString()
-  @MinLength(8, { message: 'Password must be at least 8 characters' })
+  @MinLength(8, {
+    message: 'Password must be at least 8 characters.',
+  })
   password!: string;
 
   @IsOptional()
@@ -25,7 +27,9 @@ export class RegisterDto {
   lastName?: string;
 
   @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
+  @IsNotEmpty({ message: 'Workspace name is required.' })
+  @MinLength(2, {
+    message: 'Workspace name must be at least 2 characters.',
+  })
   workspaceName!: string;
 }

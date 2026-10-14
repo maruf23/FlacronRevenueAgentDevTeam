@@ -20,6 +20,51 @@ export class ApiError extends Error {
   }
 }
 
+/** Turn a NestJS error body into a sentence a person can act on. */
+export function readApiErrorMessage(body: unknown, fallback: string): string {
+  if (typeof body === 'string' && body.trim()) return body.trim();
+  if (!body || typeof body !== 'object') return fallback;
+
+  const raw = (body as { message?: unknown }).message;
+  const parts = (Array.isArray(raw) ? raw : [raw])
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map(humanizeValidationMessage);
+
+  return parts.length > 0 ? parts.join(' ') : fallback;
+}
+
+function humanizeValidationMessage(message: string): string {
+  const text = message.replace(/\s+/g, ' ').trim();
+  const rules: Array<[RegExp, string]> = [
+    [
+      /password must be (longer than or equal to|at least) 8/i,
+      'Password must be at least 8 characters.',
+    ],
+    [
+      /workspaceName must be (longer than or equal to|at least) 2/i,
+      'Workspace name must be at least 2 characters.',
+    ],
+    [/email must be an email/i, 'Enter a valid email address.'],
+    [
+      /firstName should not be empty/i,
+      'First name cannot be empty.',
+    ],
+    [
+      /lastName should not be empty/i,
+      'Last name cannot be empty.',
+    ],
+  ];
+
+  for (const [pattern, friendly] of rules) {
+    if (pattern.test(text)) return friendly;
+  }
+
+  const sentence = text.charAt(0).toUpperCase() + text.slice(1);
+  return /[.!?]$/.test(sentence) ? sentence : `${sentence}.`;
+}
+
 export type ApiRequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
   token?: string | null;
@@ -78,7 +123,10 @@ async function request<T>(
     } catch {
       errorBody = await response.text().catch(() => undefined);
     }
-    const message = `API request failed: ${response.status} ${response.statusText}`;
+    const message = readApiErrorMessage(
+      errorBody,
+      `API request failed: ${response.status} ${response.statusText}`,
+    );
     notifyApiError(response.status, message, apiPath);
     throw new ApiError(response.status, message, errorBody);
   }
@@ -145,7 +193,10 @@ export const api = {
       } catch {
         errorBody = await response.text().catch(() => undefined);
       }
-      const message = `API request failed: ${response.status} ${response.statusText}`;
+      const message = readApiErrorMessage(
+        errorBody,
+        `API request failed: ${response.status} ${response.statusText}`,
+      );
       notifyApiError(response.status, message, apiPath);
       throw new ApiError(response.status, message, errorBody);
     }
@@ -196,7 +247,10 @@ export const api = {
       }
       throw new ApiError(
         response.status,
-        `API request failed: ${response.status} ${response.statusText}`,
+        readApiErrorMessage(
+          errorBody,
+          `API request failed: ${response.status} ${response.statusText}`,
+        ),
         errorBody,
       );
     }

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ApiError } from '@/lib/api';
+import { ApiError, readApiErrorMessage } from '@/lib/api';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -26,12 +26,8 @@ export default function LoginPage() {
     } catch (err) {
       const message =
         err instanceof ApiError
-          ? typeof err.body === 'object' &&
-            err.body &&
-            'message' in err.body
-            ? String((err.body as { message: unknown }).message)
-            : err.message
-          : 'Login failed';
+          ? readApiErrorMessage(err.body, err.message)
+          : 'Login failed. Check your email and password, then try again.';
       setError(message);
     } finally {
       setLoading(false);
